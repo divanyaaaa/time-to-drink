@@ -6,115 +6,140 @@
     <title>TIME TO DRINK</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --main-blue: #3498db;
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #222222);
-            --sec-bg: var(--tg-theme-secondary-bg-color, #f0f2f5);
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
             margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
 
+        /* Шапка */
         .header {
             width: 100%;
-            padding: 15px;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             box-sizing: border-box;
         }
 
-        .icon-btn {
-            background: var(--sec-bg);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            cursor: pointer;
+        .streak-badge {
+            background: var(--tg-theme-secondary-bg-color, #f0f2f5);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 5px;
         }
 
-        /* Прогресс-бар */
-        .progress-container {
-            width: 85%;
-            height: 30px;
-            background: var(--sec-bg);
-            border-radius: 15px;
-            margin: 20px 0;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid rgba(0,0,0,0.1);
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--tg-theme-button-color, #3498db);
+            cursor: pointer;
         }
 
-        #progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #3498db, #2ecc71);
-            transition: width 0.5s ease-out;
+        /* Горизонтальный календарь */
+        .calendar {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            margin: 10px 0 20px;
+            gap: 5px;
         }
 
-        .stats {
+        .day-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            font-size: 12px;
+            padding: 8px 0;
+            border-radius: 12px;
+            background: var(--tg-theme-secondary-bg-color, #f0f2f5);
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .day-item.active {
+            background: var(--tg-theme-button-color, #3498db);
+            color: white;
+        }
+
+        .day-item.completed {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .day-item b { font-size: 14px; }
+
+        /* Основной блок */
+        .main-card {
             text-align: center;
-            margin-bottom: 30px;
+            width: 90%;
+            margin-top: 20px;
         }
 
-        .stats h1 { font-size: 48px; margin: 10px 0; color: var(--main-blue); }
-        .stats p { color: gray; margin: 0; }
+        .progress-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 8px solid var(--tg-theme-secondary-bg-color, #f0f2f5);
+            position: relative;
+        }
+
+        #counter { font-size: 36px; font-weight: bold; margin: 0; color: var(--tg-theme-button-color, #3498db); }
+        #goal-label { font-size: 14px; color: var(--tg-theme-hint-color, #999); }
 
         /* Кнопки */
-        .controls {
+        .btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            width: 85%;
+            width: 90%;
+            margin-top: 30px;
         }
 
-        .btn-add {
-            background: var(--main-blue);
-            color: white;
+        .btn-main {
+            background-color: var(--tg-theme-button-color, #3498db);
+            color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
-            padding: 20px;
-            border-radius: 20px;
+            padding: 15px;
+            border-radius: 14px;
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
         }
-
-        .btn-add:active { transform: scale(0.95); }
 
         /* Настройки */
         #settings-screen {
             position: fixed;
             inset: 0;
-            background: var(--bg-color);
+            background: var(--tg-theme-bg-color, #ffffff);
+            padding: 20px;
             display: none;
             flex-direction: column;
-            padding: 20px;
             z-index: 100;
         }
 
-        .input-group { margin-top: 20px; }
         input, select {
             width: 100%;
             padding: 15px;
-            margin-top: 10px;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            background: var(--sec-bg);
-            color: var(--text-color);
-            box-sizing: border-box;
+            margin: 10px 0 20px;
+            border-radius: 10px;
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            color: var(--tg-theme-text-color);
         }
 
         .save-btn {
@@ -123,8 +148,6 @@
             border: none;
             padding: 15px;
             border-radius: 12px;
-            margin-top: auto;
-            margin-bottom: 30px;
             font-weight: bold;
         }
     </style>
@@ -133,94 +156,183 @@
 
     <div class="header">
         <button class="icon-btn" onclick="toggleSettings(true)">⚙️</button>
-        <button class="icon-btn" onclick="resetWater()">🔄</button>
+        <div class="streak-badge">
+            <span id="streak-count">0</span> 🔥
+        </div>
+        <button class="icon-btn" onclick="resetToday()">🔄</button>
     </div>
 
-    <div class="stats">
-        <p>Выпито сегодня</p>
-        <h1 id="counter">0 мл</h1>
-        <p id="goal-text">Цель: 2000 мл</p>
+    <!-- Календарь -->
+    <div class="calendar" id="calendar">
+        <!-- Генерируется скриптом -->
     </div>
 
-    <div class="progress-container">
-        <div id="progress-fill"></div>
-    </div>
-
-    <div class="controls">
-        <button class="btn-add" onclick="addWater(250)">+ 250 мл</button>
-        <button class="btn-add" onclick="addWater(500)">+ 500 мл</button>
+    <div class="main-card">
+        <div class="progress-circle" id="circle">
+            <p id="counter">0</p>
+            <p id="goal-label">из 2000 мл</p>
+        </div>
+        <div class="btn-grid">
+            <button class="btn-main" onclick="addWater(250)">+ 250 мл</button>
+            <button class="btn-main" onclick="addWater(500)">+ 500 мл</button>
+        </div>
     </div>
 
     <!-- Настройки -->
     <div id="settings-screen">
-        <h2>Мои данные</h2>
-        <div class="input-group">
-            <label>Ваш вес (кг)</label>
-            <input type="number" id="weight-input" placeholder="70">
-        </div>
-        <div class="input-group">
-            <label>Пол</label>
-            <select id="gender-input">
-                <option value="male">Мужской</option>
-                <option value="female">Женский</option>
-            </select>
-        </div>
+        <h2>Настройки профиля</h2>
+        <label>Ваш вес (кг):</label>
+        <input type="number" id="weight-input" placeholder="70">
+        <label>Пол:</label>
+        <select id="gender-input">
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+        </select>
         <button class="save-btn" onclick="saveSettings()">СОХРАНИТЬ</button>
-        <button style="background:none; border:none; color:gray;" onclick="toggleSettings(false)">Отмена</button>
+        <button style="margin-top:15px; background:none; border:none; color:gray;" onclick="toggleSettings(false)">Закрыть</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let count = parseInt(localStorage.getItem('water_count')) || 0;
-        let goal = parseInt(localStorage.getItem('water_goal')) || 2000;
+        // Данные
+        let state = {
+            count: 0,
+            goal: 2000,
+            history: {}, // Формат: {"2023-10-25": 2000}
+            streak: 0,
+            lastDate: ""
+        };
 
-        function updateUI() {
-            document.getElementById('counter').innerText = count + ' мл';
-            document.getElementById('goal-text').innerText = 'Цель: ' + goal + ' мл';
-            
-            // Считаем % прогресса
-            let percent = (count / goal) * 100;
-            if (percent > 100) percent = 100;
-            document.getElementById('progress-fill').style.width = percent + '%';
-            
-            localStorage.setItem('water_count', count);
-        }
-
-        function addWater(ml) {
-            count += ml;
+        // Загрузка данных
+        function loadData() {
+            const saved = localStorage.getItem('water_app_data');
+            if (saved) {
+                state = JSON.parse(saved);
+            }
+            checkNewDay();
             updateUI();
-            tg.HapticFeedback.impactOccurred('medium');
         }
 
-        function resetWater() {
-            if(confirm("Сбросить прогресс?")) {
-                count = 0;
-                updateUI();
+        function saveData() {
+            localStorage.setItem('water_app_data', JSON.stringify(state));
+        }
+
+        // Проверка смены дня
+        function checkNewDay() {
+            const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+            if (state.lastDate !== today) {
+                // Если был вчерашний день, сохраняем его в историю
+                if (state.lastDate !== "") {
+                    state.history[state.lastDate] = state.count;
+                }
+                
+                // Сбрасываем счетчик для нового дня
+                state.count = 0;
+                state.lastDate = today;
+                
+                calculateStreak();
+                saveData();
             }
         }
 
+        function calculateStreak() {
+            let streak = 0;
+            let date = new Date();
+            date.setDate(date.getDate() - 1); // Начинаем проверку со вчера
+
+            while (true) {
+                const dayStr = date.toLocaleDateString('en-CA');
+                if (state.history[dayStr] >= state.goal) {
+                    streak++;
+                    date.setDate(date.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            state.streak = streak;
+        }
+
+        function addWater(ml) {
+            state.count += ml;
+            
+            // Если сегодня цель достигнута впервые
+            if (state.count >= state.goal && (state.count - ml) < state.goal) {
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+            
+            saveData();
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('counter').innerText = state.count;
+            document.getElementById('goal-label').innerText = "из " + state.goal + " мл";
+            document.getElementById('streak-count').innerText = state.streak + (state.count >= state.goal ? 1 : 0);
+            
+            // Подсветка круга
+            const circle = document.getElementById('circle');
+            if (state.count >= state.goal) {
+                circle.style.borderColor = "#2ecc71";
+            } else {
+                circle.style.borderColor = "var(--tg-theme-secondary-bg-color, #f0f2f5)";
+            }
+
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('calendar');
+            container.innerHTML = "";
+            const daysShort = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toLocaleDateString('en-CA');
+                const isToday = i === 0;
+                
+                const val = isToday ? state.count : (state.history[dateStr] || 0);
+                const isDone = val >= state.goal;
+
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `day-item ${isToday ? 'active' : ''} ${isDone ? 'completed' : ''}`;
+                dayDiv.innerHTML = `
+                    <span>${daysShort[d.getDay()]}</span>
+                    <b>${d.getDate()}</b>
+                    <span>${isDone ? '✅' : ''}</span>
+                `;
+                container.appendChild(dayDiv);
+            }
+        }
+
+        // Настройки
         function toggleSettings(show) {
             document.getElementById('settings-screen').style.display = show ? 'flex' : 'none';
         }
 
         function saveSettings() {
             const w = document.getElementById('weight-input').value;
-            if(w > 0) {
-                goal = w * 35;
-                localStorage.setItem('water_goal', goal);
-                localStorage.setItem('user_weight', w);
+            if (w > 0) {
+                state.goal = w * 35;
+                saveData();
                 updateUI();
                 toggleSettings(false);
             }
         }
 
-        // Инициализация
-        window.onload = () => {
-            document.getElementById('weight-input').value = localStorage.getItem('user_weight') || '';
-            updateUI();
-        };
+        function resetToday() {
+            if(confirm("Сбросить данные за сегодня?")) {
+                state.count = 0;
+                saveData();
+                updateUI();
+            }
+        }
+
+        window.onload = loadData;
     </script>
 </body>
 </html>
