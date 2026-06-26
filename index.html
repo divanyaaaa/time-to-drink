@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIME TO DRINK</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --main-blue: #3498db;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #222222);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Шапка с кнопкой настроек */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--tg-theme-button-color, var(--main-blue));
+        }
+
+        /* Главный экран */
+        .main-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .progress-box {
+            font-size: 42px;
+            font-weight: bold;
+            color: var(--main-blue);
+            margin: 15px 0;
+        }
+
+        .goal-text {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-bottom: 20px;
+        }
+
+        .btn-add {
+            background-color: var(--tg-theme-button-color, var(--main-blue));
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 18px 30px;
+            font-size: 18px;
+            border-radius: 15px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        /* Окно настроек (скрыто по умолчанию) */
+        #settings-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            display: none; /* Скрыто */
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background: var(--tg-theme-secondary-bg-color, #f9f9f9);
+            color: var(--tg-theme-text-color);
+            box-sizing: border-box;
+        }
+
+        .save-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Главный экран -->
+    <div class="header">
+        <button class="settings-btn" onclick="toggleSettings(true)">⚙️</button>
+    </div>
+
+    <div class="main-screen" id="main-screen">
+        <div class="card">
+            <h1 style="margin:0">TIME TO DRINK</h1>
+            <div class="progress-box" id="counter">0 мл</div>
+            <div class="goal-text" id="goal-display">Цель: 2000 мл</div>
+            <button class="btn-add" onclick="addWater()">ВЫПИЛ 250 мл</button>
+        </div>
+        <button style="margin-top: 20px; background:none; border:none; color:gray; text-decoration:underline;" onclick="resetWater()">Сброс</button>
+    </div>
+
+    <!-- Экран настроек -->
+    <div id="settings-screen">
+        <div class="settings-header">
+            <h2>Настройки</h2>
+            <button class="settings-btn" onclick="toggleSettings(false)">❌</button>
+        </div>
+
+        <div class="input-group">
+            <label>Ваш вес (кг)</label>
+            <input type="number" id="weight-input" placeholder="Например: 70">
+        </div>
+
+        <div class="input-group">
+            <label>Пол</label>
+            <select id="gender-input">
+                <option value="male">Мужской</option>
+                <option value="female">Женский</option>
+            </select>
+        </div>
+
+        <p style="font-size: 12px; color: gray;">* Норма рассчитывается как 35 мл на 1 кг веса.</p>
+        
+        <button class="save-btn" onclick="saveSettings()">СОХРАНИТЬ</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let count = parseInt(localStorage.getItem('water_count')) || 0;
+        let goal = parseInt(localStorage.getItem('water_goal')) || 2000;
+
+        // Переключение экранов
+        function toggleSettings(show) {
+            document.getElementById('settings-screen').style.display = show ? 'flex' : 'none';
+        }
+
+        // Сохранение настроек
+        function saveSettings() {
+            const weight = document.getElementById('weight-input').value;
+            const gender = document.getElementById('gender-input').value;
+
+            if (weight > 0) {
+                // Рассчитываем норму: вес * 35мл
+                goal = weight * 35;
+                localStorage.setItem('water_goal', goal);
+                localStorage.setItem('user_weight', weight);
+                localStorage.setItem('user_gender', gender);
+                
+                updateDisplay();
+                toggleSettings(false); // Закрываем настройки
+                tg.showAlert("Данные сохранены! Ваша норма: " + goal + " мл.");
+            } else {
+                alert("Пожалуйста, введите корректный вес");
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('counter').innerText = count + " мл";
+            document.getElementById('goal-display').innerText = "Цель: " + goal + " мл";
+            localStorage.setItem('water_count', count);
+        }
+
+        function addWater() {
+            count += 250;
+            updateDisplay();
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function resetWater() {
+            if(confirm("Сбросить прогресс на сегодня?")) {
+                count = 0;
+                updateDisplay();
+            }
+        }
+
+        // Загрузка сохраненных данных при старте
+        window.onload = function() {
+            const savedWeight = localStorage.getItem('user_weight');
+            if (savedWeight) document.getElementById('weight-input').value = savedWeight;
+            
+            const savedGender = localStorage.getItem('user_gender');
+            if (savedGender) document.getElementById('gender-input').value = savedGender;
+
+            updateDisplay();
+        };
+    </script>
+</body>
+</html>
